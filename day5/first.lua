@@ -1,7 +1,7 @@
 local prompt      = require "util.prompt"
 -- local lib    = require "day5.lib"
-local file        = "./day5/sample.txt"
--- local file   = os.getenv("HOME") .. "/Downloads/aoc2024/input5.txt"
+-- local file        = "./day5/sample.txt"
+local file   = os.getenv("HOME") .. "/Downloads/aoc2024/input5.txt"
 
 ---@alias Rules table<integer, integer[]>
 
@@ -13,19 +13,6 @@ local afterRules  = {}
 ---@type integer[][]
 local lines       = {}
 
----@param lineNo number
----@param pos number
----@return number|nil
-local function getNum(lineNo, pos)
-    local line = lines[lineNo]
-    if line == nil then
-        error('tried to get nul line')
-        return nil
-    end
-
-    return line[pos]
-end
-
 ---@param rules Rules
 ---@param key integer
 ---@param value integer
@@ -33,7 +20,7 @@ local function hasRule(rules, key, value)
     local entry = rules[key]
     if entry == nil then
         return nil
-end
+    end
     for _, val in ipairs(entry) do
         if value == val then
             return true
@@ -53,23 +40,23 @@ local function insert(rules, key, value)
     table.insert(rules[key], value)
 end
 
----@param lineNo number
-local function checkAfter(lineNo) 
-    local pos = 1
-    while pos <= #lines do
-        local current = getNum(lineNo, pos)
-        for i = pos, 1, -1 do
-            local before = getNum(lineNo, i)
-            if hasRule(beforeRules, before, current) then
-                goto continue
-
+---@param line number[]
+---@diagnostic disable-next-line: unused-function
+local function checkLToR(line)
+    local i = 1
+    while i < #line + 1 do
+        local current = line[i]
+        local j = i - 1
+        while j > 0 do
+            local prev = line[j]
+            if hasRule(afterRules, prev, current) then
+                return false
             end
-            ::continue::
+            j = j - 1
         end
-        pos = pos + 1
+        i = i + 1
     end
-
-
+    return true
 end
 
 local parseRules = true
@@ -92,11 +79,15 @@ for line in io.lines(file) do
     end
 end
 
-for i, line in ipairs(lines) do
-end
-
-
 
 local answer = 0
+for _, line in ipairs(lines) do
+    if checkLToR(line) then
+        local middleIndex = (#line - 1) / 2 + 1
+
+        answer = answer + line[middleIndex]
+    end
+end
+
 print("The answer is:")
 print(answer)
